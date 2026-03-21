@@ -1,0 +1,65 @@
+# =============================================================================
+# .gitignore — DRIPc-seq Pipeline
+# =============================================================================
+
+# ── pipeline results and logs ─────────────────────────────────────────────────
+results/
+logs/
+.snakemake/
+
+# ── large data files ──────────────────────────────────────────────────────────
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+*.bam
+*.bam.bai
+*.bai
+*.bw
+*.bigwig
+*.bedgraph
+*.bg
+*.tdf
+
+# ── genome / index files ─────────────────────────────────────────────────────
+*.bt2
+*.bt2l
+*.fa
+*.fa.fai
+*.dict
+*.chrom.sizes
+
+# ── R artifacts ───────────────────────────────────────────────────────────────
+.Rhistory
+.RData
+.Rproj.user
+*.rds
+!scripts/*.R
+
+# ── Python artifacts ──────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+.eggs/
+*.egg-info/
+
+# ── conda environments (built) ───────────────────────────────────────────────
+.snakemake/conda/
+
+# ── OS files ──────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.swo
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+
+# ── do NOT ignore ─────────────────────────────────────────────────────────────
+!config/samples.tsv
+!config/config.yaml
+!envs/*.yaml
+!scripts/*
+!Snakefile
