@@ -24,7 +24,7 @@ option_list <- list(
   make_option("--output-pdf", type = "character", help = "Output PDF path"),
   make_option("--output-png", type = "character", help = "Output PNG path"),
   make_option("--fc-threshold", type = "double", default = 1.5),
-  make_option(c("--fdr-threshold", "--pval-threshold"), type = "double",
+  make_option("--fdr-threshold", type = "double",
               default = 0.05, dest = "fdr_threshold",
               help = "FDR threshold [default: 0.05]"),
   make_option("--title", type = "character", default = "Volcano Plot")

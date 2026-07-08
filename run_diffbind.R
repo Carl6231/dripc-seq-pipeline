@@ -32,7 +32,7 @@ option_list <- list(
               help = "Comparisons as Python-style list string"),
   make_option("--fc-threshold", type = "double", default = 1.5,
               help = "Fold-change threshold [default: 1.5]"),
-  make_option(c("--fdr-threshold", "--pval-threshold"), type = "double",
+  make_option("--fdr-threshold", type = "double",
               default = 0.05, dest = "fdr_threshold",
               help = "FDR threshold for significant differential R-loop-enriched regions [default: 0.05]"),
   make_option("--min-overlap", type = "integer", default = 2,
