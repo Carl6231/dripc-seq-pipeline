@@ -503,7 +503,7 @@ rule diffbind:
     params:
         comparisons=str(ALL_COMPARISONS),
         fc_threshold=config["diffbind"].get("fc_threshold", 1.5),
-        pval_threshold=config["diffbind"].get("pval_threshold", 0.05),
+        fdr_threshold=config["diffbind"].get("fdr_threshold", 0.05),
         min_overlap=config["diffbind"].get("minOverlap", 2),
         normalization=config["diffbind"].get("normalization", "default"),
         outdir="results/diffbind",
@@ -517,7 +517,7 @@ rule diffbind:
             --samplesheet {input.sheet} \
             --comparisons '{params.comparisons}' \
             --fc-threshold {params.fc_threshold} \
-            --pval-threshold {params.pval_threshold} \
+            --fdr-threshold {params.fdr_threshold} \
             --min-overlap {params.min_overlap} \
             --normalization "{params.normalization}" \
             --outdir {params.outdir} \
@@ -536,7 +536,7 @@ rule volcano:
         png="results/plots/{comp}.volcano.png",
     params:
         fc_threshold=config["diffbind"].get("fc_threshold", 1.5),
-        pval_threshold=config["diffbind"].get("pval_threshold", 0.05),
+        fdr_threshold=config["diffbind"].get("fdr_threshold", 0.05),
     log:
         "logs/plots/{comp}.volcano.log",
     conda:
@@ -548,7 +548,7 @@ rule volcano:
             --output-pdf {output.pdf} \
             --output-png {output.png} \
             --fc-threshold {params.fc_threshold} \
-            --pval-threshold {params.pval_threshold} \
+            --fdr-threshold {params.fdr_threshold} \
             --title "{wildcards.comp}" \
             > {log} 2>&1
         """
