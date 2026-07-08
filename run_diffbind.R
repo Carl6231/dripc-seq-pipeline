@@ -7,15 +7,14 @@
 #       --samplesheet results/diffbind/diffbind_samplesheet.csv \
 #       --comparisons "[['3day','Sham'],['7day','3day']]" \
 #       --fc-threshold 1.5 \
-#       --pval-threshold 0.05 \
+#       --fdr-threshold 0.05 \
 #       --min-overlap 2 \
 #       --normalization default \
 #       --outdir results/diffbind \
 #       --counts-rds results/diffbind/dba_counts.rds
 # =============================================================================
-# NOTE: DiffBind 2.6.6 was used by the vendor but exact minOverlap,
-# normalization, and counting parameters were NOT disclosed. The values
-# used here are user-configurable via config.yaml.
+# NOTE: This is a standardized representative DiffBind workflow for documenting
+# the main analytical steps. Key thresholds are user-configurable via config.yaml.
 # =============================================================================
 
 suppressPackageStartupMessages({
@@ -33,12 +32,13 @@ option_list <- list(
               help = "Comparisons as Python-style list string"),
   make_option("--fc-threshold", type = "double", default = 1.5,
               help = "Fold-change threshold [default: 1.5]"),
-  make_option("--pval-threshold", type = "double", default = 0.05,
-              help = "Nominal p-value threshold [default: 0.05]"),
+  make_option(c("--fdr-threshold", "--pval-threshold"), type = "double",
+              default = 0.05, dest = "fdr_threshold",
+              help = "FDR threshold for significant differential R-loop-enriched regions [default: 0.05]"),
   make_option("--min-overlap", type = "integer", default = 2,
-              help = "DiffBind minOverlap [default: 2; vendor value unknown]"),
+              help = "DiffBind minOverlap [default: 2]"),
   make_option("--normalization", type = "character", default = "default",
-              help = "Normalization: default|lib|RLE|TMM|native [default: default; vendor value unknown]"),
+              help = "Normalization: default|lib|RLE|TMM|native [default: default]"),
   make_option("--outdir", type = "character", default = "results/diffbind",
               help = "Output directory"),
   make_option("--counts-rds", type = "character",
@@ -74,11 +74,9 @@ cat("=== DiffBind differential analysis ===\n")
 cat("Sample sheet:", opt$samplesheet, "\n")
 cat("Comparisons:", length(comparisons), "\n")
 cat("FC threshold:", opt$fc_threshold, "\n")
-cat("P-value threshold:", opt$pval_threshold, "\n")
-cat("minOverlap:", opt$`min-overlap`,
-    " (NOTE: vendor value unknown, user-configured)\n")
-cat("normalization:", opt$normalization,
-    " (NOTE: vendor value unknown, user-configured)\n")
+cat("FDR threshold:", opt$fdr_threshold, "\n")
+cat("minOverlap:", opt$`min-overlap`, "\n")
+cat("normalization:", opt$normalization, "\n")
 
 dir.create(opt$outdir, showWarnings = FALSE, recursive = TRUE)
 
@@ -139,7 +137,7 @@ for (comp in comparisons) {
     # Run analysis
     dba_result <- dba.analyze(dba_contrast)
 
-    # Extract all results
+    # Extract all results; significant peaks are filtered below using FDR.
     res <- dba.report(dba_result, th = 1)  # th=1 gets all peaks
     res_df <- as.data.frame(res)
 
@@ -153,24 +151,18 @@ for (comp in comparisons) {
     write.table(res_df, all_file, sep = "\t", row.names = FALSE, quote = FALSE)
     cat("  All peaks:", nrow(res_df), "->", all_file, "\n")
 
-    # Filter significant: |FC| >= threshold AND p < threshold
+    # Filter significant peaks using FDR and fold-change thresholds.
     fc_col <- if ("Fold" %in% colnames(res_df)) "Fold" else "log2FoldChange"
-    pval_col <- if ("p.value" %in% colnames(res_df)) "p.value" else {
-      if ("p-value" %in% colnames(res_df)) "p-value" else "pvalue"
-    }
+    possible_fdr_cols <- c("FDR", "padj", "q.value", "qvalue")
+    fdr_col <- intersect(possible_fdr_cols, colnames(res_df))[1]
 
-    # Try to find the right p-value column
-    possible_pcols <- c("p.value", "p-value", "pvalue", "Pval")
-    pval_col <- intersect(possible_pcols, colnames(res_df))[1]
-
-    if (is.na(pval_col)) {
-      cat("  WARNING: Could not find p-value column. Columns:",
+    if (is.na(fdr_col)) {
+      cat("  WARNING: Could not find FDR column. Columns:",
           paste(colnames(res_df), collapse = ", "), "\n")
-      # Still write the full results
       sig_df <- res_df[0, ]
     } else {
       sig_idx <- abs(res_df[[fc_col]]) >= log2(opt$fc_threshold) &
-                 res_df[[pval_col]] < opt$pval_threshold
+                 res_df[[fdr_col]] < opt$fdr_threshold
       sig_df <- res_df[sig_idx, ]
     }
 
